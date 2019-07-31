@@ -1,15 +1,23 @@
 int ledPin = 10;
 int switchPin = 8;
-boolean lastButton = LOW;
-boolean currentButton = LOW;
+int motorPin = 5;
+boolean reading = LOW;
+boolean previous = LOW;
+boolean isPush = LOW;
 boolean ledOn = false;
-int ledLevel = 0; 
+int ledLevel = 0;
 
+#include<Servo.h>
+
+Servo servo;
 void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
   pinMode(switchPin, INPUT);
   pinMode(ledPin, OUTPUT);
+  servo.attach(motorPin);
+  servo.write(0);
+  delay(1000);
 }
 
 boolean debounce(boolean last)
@@ -24,19 +32,27 @@ boolean debounce(boolean last)
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-//First programm
-  Serial.println(lastButton);
-  currentButton = debounce(lastButton);
-  if(lastButton == LOW && currentButton == HIGH)
+  //Текущее состояние кнопки
+  reading = debounce(previous);
+  servo.write(90);
+  delay(1000);
+  servo.write(0);
+  delay(1000);
+  //Serial.println(lastButton);
+  if(isPush == HIGH)
   {
-    ledLevel = ledLevel + 51;
-  }
-    lastButton = currentButton;
     if (ledLevel > 255){
       ledLevel = 0;
     }
     ledLevel += 1;
-    delay(10);
-  analogWrite(ledPin, ledLevel);
+    //Serial.println(ledLevel);
+    delay(20);
+    analogWrite(ledPin, ledLevel);
+  }
+  //Проверяет состояние кнопки. Если кнопка нажата один раз, то включаем светодиод, если еще раз нажата, то отключаем и т.д.
+    if (reading == HIGH && previous == LOW){
+      isPush == LOW ? isPush = HIGH : isPush = LOW;
+    } 
+    //Прошлое состояние кнопки
+    previous = reading;
 }
